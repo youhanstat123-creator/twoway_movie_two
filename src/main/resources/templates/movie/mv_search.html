@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2WAY CINEMA · 영화 검색</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+
+    <style>
+        .mv-wrap{max-width:1000px;margin:26px auto 70px;padding:0 16px;}
+        .glass{
+            border-radius:24px;border:1px solid rgba(255,255,255,.10);
+            background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+            box-shadow: 0 28px 90px rgba(0,0,0,.55);
+            backdrop-filter: blur(18px);overflow:hidden;
+        }
+        .hd{padding:16px;border-bottom:1px solid rgba(255,255,255,.10)}
+        .hd h1{margin:0;font-size:28px;font-weight:950;letter-spacing:-.5px;color:#fff}
+        .hd .sub{margin-top:6px;color:rgba(244,245,255,.72);font-weight:700}
+        .bd{padding:16px}
+        .panel{
+            background: rgba(255,255,255,.92);
+            border:1px solid rgba(0,0,0,.08);
+            border-radius:20px;
+            padding:16px;
+            color:#0b0b12;
+            box-shadow: 0 12px 40px rgba(0,0,0,.10);
+        }
+        .lab{font-size:12px;color:rgba(0,0,0,.62);font-weight:900;margin-bottom:6px}
+        .inp,.sel{
+            height:46px;border-radius:14px;border:1px solid rgba(0,0,0,.16);
+            padding:0 14px;background:#fff;outline:none;font-weight:800;width:100%
+        }
+        .inp:focus,.sel:focus{
+            border-color:rgba(255,43,214,.55);
+            box-shadow:0 0 0 4px rgba(255,43,214,.14)
+        }
+        .genre-box label{
+            margin-right:16px;
+            font-weight:700;
+        }
+        .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        .btnx{
+            border:none;border-radius:14px;padding:12px 14px;
+            font-weight:1000;cursor:pointer;text-decoration:none;
+            display:inline-flex;align-items:center;justify-content:center;gap:8px
+        }
+        .primary{
+            color:#fff;
+            background:linear-gradient(135deg, rgba(255,43,214,.92), rgba(124,92,255,.80));
+            box-shadow:0 18px 55px rgba(255,43,214,.20)
+        }
+        .ghost{
+            background:rgba(0,0,0,.04);
+            border:1px solid rgba(0,0,0,.10);
+            color:#111
+        }
+    </style>
+</head>
+
+<body>
+
+
+<!-- 상단바 -->
+<div th:replace="~{layouts/top_public :: body}"></div>
+
+<main class="mv-wrap">
+    <section class="glass">
+        <div class="hd">
+            <h1>영화 검색</h1>
+            <div class="sub">제목 · 가격 · 날짜 · 장르로 검색합니다.</div>
+        </div>
+
+        <div class="bd">
+            <div class="panel">
+
+                <!-- 검색 폼 -->
+                <form th:action="@{/searchgo1}" method="get">
+                    <div class="row g-3">
+
+                        <!-- 검색키 -->
+                        <div class="col-md-4">
+                            <div class="lab">검색키</div>
+                            <select class="sel" name="mkey">
+                                <option value="mtitle">제목</option>
+                                <option value="mprice">가격</option>
+                                <option value="mdate">날짜 (YYYY-MM-DD)</option>
+                            </select>
+                        </div>
+
+                        <!-- 검색값 -->
+                        <div class="col-md-8">
+                            <div class="lab">검색값</div>
+                            <input class="inp" name="mvalue"
+                                   placeholder="예) 아바타 / 12000 / 2026-01-15">
+                        </div>
+
+
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="col-12 actions">
+                            <button class="btnx primary" type="submit">검색</button>
+                            <a class="btnx ghost" th:href="@{/mv_outgo}">목록</a>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

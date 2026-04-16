@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="footer">
+    <div class="container-xxl">
+
+        <div class="footer-inner">
+
+            <!-- ✅ 로고 -->
+            <div class="footer-logo">
+                <img src="/image/two.png" alt="2WAY CINEMA">
+            </div>
+
+            <!-- ✅ 정보 -->
+            <div class="footer-info">
+                <div>
+                    MBC아카데미 컴퓨터교육센터 인천부평점 (21404)<br>
+                    인천 부평구 광장로 16 부평역사쇼핑몰 6층
+                </div>
+                <div>TEL : 0507-1355-6224</div>
+                <div class="copyright">
+                    COPYRIGHT ©
+                    <span th:text="${#dates.format(#dates.createNow(),'yyyy')}">2026</span>
+                    twoway Co,. Ltd. ALL RIGHTS RESERVED.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</footer>
+
+</body>
+</html>
+
+
+<!-- ✅ Bootstrap JS Bundle (dropdown/collapse 동작 필수) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

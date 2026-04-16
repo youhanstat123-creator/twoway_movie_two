@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<header th:fragment="header" class="topbar">
+    <div class="container-xxl">
+        <nav class="navbar navbar-expand-lg py-2">
+
+            <!-- BRAND -->
+            <a class="brand navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+                <span class="badge">2WAY</span>
+                <span style="font-weight:950;color:rgba(244,245,255,.95)">CINEMA</span>
+            </a>
+
+            <!-- toggler -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav"
+                    aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation"
+                    style="border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);">
+                <span class="navbar-toggler-icon" style="filter:invert(1)"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNav">
+
+                <!-- LEFT MENU -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-2" style="font-weight:850;">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">대시보드</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">영화관리</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/mv_outgo}">영화정보출력</a></li>
+                            <li><a class="dropdown-item" th:href="@{/mv_searchgo}">영화정보검색</a></li>
+                            <li sec:authorize="hasRole('ADMIN')">
+                                <a class="dropdown-item" th:href="@{/mv_inputgo}">영화정보입력(ADMIN)</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">문의게시판</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/board_all}">전체 문의</a></li>
+                            <li><a class="dropdown-item" th:href="@{/board_movie}">영화 문의</a></li>
+                            <li><a class="dropdown-item" th:href="@{/board_inputgo}">문의 등록</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">모빌리티</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/mobility}">주차/오시는길+</a></li>
+                            <li><a class="dropdown-item" th:href="@{/mobility/fee}">주차요금정산</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">회원관리</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/member_inputgo}">회원가입</a></li>
+                            <li sec:authorize="hasRole('ADMIN')">
+                                <a class="dropdown-item" th:href="@{/member_outgo}">회원정보출력(ADMIN)</a>
+                            </li>
+                            <li sec:authorize="hasRole('ADMIN')">
+                                <a class="dropdown-item" th:href="@{/member_searchgo}">회원정보검색(ADMIN)</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- ✅ (추가) 관리자 전용 메뉴 탭을 따로 보여주고 싶으면 -->
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin}">관리자</a>
+                    </li>
+                </ul>
+
+                <!-- RIGHT AREA -->
+                <div class="d-flex align-items-center gap-2">
+                    <a class="btn-neo-outline" sec:authorize="isAnonymous()" th:href="@{/member_inputgo}">회원가입</a>
+                    <a class="btn-neo" sec:authorize="isAnonymous()" th:href="@{/login}">로그인</a>
+
+                    <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                        <span style="color:rgba(244,245,255,.80);font-weight:850;">
+                            <!-- ✅ 소셜(OAuth2) 로그인인 경우: attributes에서 username -->
+                            <b sec:authorize="authentication.principal instanceof T(org.springframework.security.oauth2.core.user.OAuth2User)"
+                               th:text="${#authentication.principal.attributes['username']}"></b>
+
+                            <!-- ✅ 폼(UserDetails) 로그인인 경우: name(userid) -->
+                            <b sec:authorize="authentication.principal instanceof T(org.springframework.security.core.userdetails.UserDetails)"
+                               sec:authentication="name"></b>
+                            님
+                        </span>
+
+                        <!-- ✅ 로그아웃: POST가 정석(안전/호환) -->
+                        <form th:action="@{/logout}" method="post" style="margin:0;">
+                            <button type="submit" class="btn-neo">로그아웃</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+    </div>
+</header>
+
+</body>
+</html>

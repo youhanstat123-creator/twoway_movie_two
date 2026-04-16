@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>문의게시판 · 답변</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+
+    <style>
+        .bd-wrap{max-width:980px;margin:26px auto 70px;padding:0 16px;}
+        .glass{border-radius:24px;border:1px solid rgba(255,255,255,.10);
+            background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+            box-shadow: 0 28px 90px rgba(0,0,0,.55);backdrop-filter: blur(18px);overflow:hidden;}
+        .hd{padding:16px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+        .title{margin:0;color:#fff;font-weight:950;letter-spacing:-.4px}
+        .sub{color:rgba(244,245,255,.75);font-weight:800;font-size:13px;margin-top:6px}
+        .bd{padding:16px;}
+        .btnx{border:none;border-radius:14px;padding:10px 12px;font-weight:1000;cursor:pointer;
+            display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap;}
+        .primary{color:#fff;background:linear-gradient(135deg, rgba(255,43,214,.92), rgba(124,92,255,.80));box-shadow:0 18px 55px rgba(255,43,214,.20)}
+        .ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff}
+        .lab{color:rgba(244,245,255,.80);font-weight:950;margin-bottom:8px}
+        .memo{white-space:pre-wrap;font-weight:800;line-height:1.55;color:#fff}
+        .box{border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);padding:14px;color:#fff}
+        textarea.form-control{border-radius:14px}
+    </style>
+</head>
+
+<body>
+<div th:replace="~{layouts/top_public :: body}"></div>
+
+<main class="bd-wrap">
+    <section class="glass">
+        <div class="hd">
+            <div>
+                <h2 class="title">답변 등록 · 문의 #<span th:text="${dto.bbunho}">1</span></h2>
+                <div class="sub">
+                    작성자: <b th:text="${dto.bname}">user</b> · 유형: <b th:text="${dto.bcategory}">MOVIE</b>
+                </div>
+            </div>
+            <a class="btnx ghost" th:href="@{/board_detail(bbunho=${dto.bbunho})}">상세로</a>
+        </div>
+
+        <div class="bd d-grid gap-3">
+            <div class="box">
+                <div class="lab">문의 내용</div>
+                <div class="memo" th:text="${dto.bmemo}">문의 내용</div>
+            </div>
+
+            <form th:action="@{/board_reply}" method="post" class="d-grid gap-3">
+                <input type="hidden" name="bbunho" th:value="${dto.bbunho}"/>
+
+                <div>
+                    <div class="lab">답변 내용</div>
+                    <textarea class="form-control" name="breply" rows="8"
+                              placeholder="답변을 입력하세요" required
+                              th:text="${dto.breply}"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                    <a class="btnx ghost" th:href="@{/board_detail(bbunho=${dto.bbunho})}">취소</a>
+                    <button class="btnx primary" type="submit">저장</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

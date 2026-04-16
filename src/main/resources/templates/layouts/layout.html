@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>2way 영화관</title>
+
+    <!-- 공통 레이아웃 CSS -->
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+
+    <!-- 페이지별 CSS -->
+    <th:block layout:fragment="css"></th:block>
+
+    <!-- 페이지별 JS -->
+    <th:block layout:fragment="script"></th:block>
+</head>
+
+<body class="layout-body">
+
+<!-- ================= HEADER ================= -->
+<header>
+    <div th:replace="fragments/header :: header"></div>
+</header>
+
+<!-- ================= CONTENT ================= -->
+<main class="layout-content" layout:fragment="content">
+    <!-- 각 페이지 내용이 여기 들어옴 -->
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div th:replace="fragments/footer :: footer"></div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2WAY CINEMA · 영화 수정</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+</head>
+
+<body>
+<div th:replace="~{layouts/top_public :: body}"></div>
+
+<main class="container-xxl my-4">
+
+    <div class="page-title mb-3">
+        <div>
+            <h2 style="color:#fff;font-weight:900">영화 수정</h2>
+            <p class="text-white-50 mb-0">제목 · 가격 · 장르 · 포스터를 수정할 수 있습니다.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-cinema-outline" th:href="@{/mv_outgo}">목록</a>
+        </div>
+    </div>
+
+    <section class="glass-card p-4">
+        <form th:action="@{/updateSave}" method="post" enctype="multipart/form-data">
+
+            <!-- PK -->
+            <input type="hidden" name="mbunho" th:value="${movie.mbunho}">
+            <input type="hidden" name="oldimage" th:value="${movie.mimage}">
+
+            <div class="row g-3">
+
+                <!-- 제목 -->
+                <div class="col-md-6">
+                    <label class="form-label text-white-50">제목</label>
+                    <input class="form-control" name="mtitle"
+                           th:value="${movie.mtitle}" required>
+                </div>
+
+                <!-- 가격 -->
+                <div class="col-md-3">
+                    <label class="form-label text-white-50">가격</label>
+                    <input class="form-control" type="number"
+                           name="mprice" th:value="${movie.mprice}" required>
+                </div>
+
+                <!-- 등록일 -->
+                <div class="col-md-3">
+                    <label class="form-label text-white-50">등록일</label>
+                    <input class="form-control" type="date"
+                           name="mdate" th:value="${movie.mdate}" required>
+                </div>
+
+                <!-- ⭐ 장르 (복수 선택) -->
+                <div class="col-12">
+                    <label class="form-label text-white-50">장르 (복수 선택)</label>
+                    <div class="d-flex flex-wrap gap-3 text-white">
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="ACTION"
+                                   th:checked="${#strings.contains(movie.mgenre,'ACTION')}"> 액션
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="ROMANCE"
+                                   th:checked="${#strings.contains(movie.mgenre,'ROMANCE')}"> 로맨스
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="COMEDY"
+                                   th:checked="${#strings.contains(movie.mgenre,'COMEDY')}"> 코미디
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="HORROR"
+                                   th:checked="${#strings.contains(movie.mgenre,'HORROR')}"> 공포
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="SF"
+                                   th:checked="${#strings.contains(movie.mgenre,'SF')}"> SF
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="FANTASY"
+                                   th:checked="${#strings.contains(movie.mgenre,'FANTASY')}"> 판타지
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="THRILLER"
+                                   th:checked="${#strings.contains(movie.mgenre,'THRILLER')}"> 스릴러
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="ANIMATION"
+                                   th:checked="${#strings.contains(movie.mgenre,'ANIMATION')}"> 애니메이션
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="MUSICAL"
+                                   th:checked="${#strings.contains(movie.mgenre,'MUSICAL')}"> 뮤지컬
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="CRIME"
+                                   th:checked="${#strings.contains(movie.mgenre,'CRIME')}"> 범죄
+                        </label>
+
+                        <label>
+                            <input type="checkbox" name="mgenre" value="WAR"
+                                   th:checked="${#strings.contains(movie.mgenre,'WAR')}"> 전쟁
+                        </label>
+
+                    </div>
+                </div>
+
+                <!-- 현재 포스터 -->
+                <div class="col-md-3">
+                    <label class="form-label text-white-50">현재 포스터</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <img th:src="@{'/upload/' + ${movie.mimage}}"
+                             style="width:60px;height:80px;object-fit:cover;
+                                    border-radius:10px;
+                                    border:1px solid rgba(255,255,255,.15)">
+                        <span class="text-white-50 small"
+                              th:text="${movie.mimage}">filename</span>
+                    </div>
+                </div>
+
+                <!-- 포스터 변경 -->
+                <div class="col-12">
+                    <label class="form-label text-white-50">포스터 교체 (선택)</label>
+                    <input class="form-control" type="file"
+                           name="mimage1" accept="image/*">
+                    <div class="text-white-50 small mt-1">
+                        파일을 선택하지 않으면 기존 포스터가 유지됩니다.
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="lab">영화 내용</div>
+                    <textarea
+                            class="form-control" name="mcontent" rows="6" placeholder="영화 줄거리나 내용을 입력하세요" required></textarea>
+                </div>
+                <!-- 버튼 -->
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-neo" type="submit">수정 저장</button>
+
+                    <a class="btn btn-secondary" th:href="@{/mv_outgo}">취소</a>
+                </div>
+
+            </div>
+        </form>
+    </section>
+
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

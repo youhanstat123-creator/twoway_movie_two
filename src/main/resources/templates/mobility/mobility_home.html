@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>주차/오시는길+ · Smart Mobility</title>
+
+    <!-- Bootstrap (헤더 드롭다운/네비) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome (선택) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- 공통 테마 -->
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+
+    <!-- ✅ 카카오맵 SDK -->
+    <script th:src="'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsKey} + '&libraries=services'"></script>
+
+    <!-- ✅ 이 페이지 전용(전역 클래스 card/btn/row/grid 사용 금지) -->
+    <style>
+        .mob-title{
+          display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;
+          margin: 18px 0 10px;
+        }
+        .mob-title h2{
+          margin:0; font-size:34px; letter-spacing:-.6px;
+          font-weight:1000; color:#fff;
+        }
+        .mob-pill{
+          display:inline-block; padding:6px 12px; border-radius:999px;
+          background:rgba(0,229,255,.12);
+          border:1px solid rgba(0,229,255,.18);
+          color:rgba(244,245,255,.92);
+          font-weight:900;
+          transform: translateY(-2px);
+        }
+        .mob-desc{
+          color:rgba(244,245,255,.68);
+          font-weight:700;
+          margin: 0 0 14px;
+        }
+
+        /* ✅ 이 페이지 내부 요소들은 overflow 절대 안 튀게 */
+        .mob-card table{ width:100%; border-collapse:collapse; }
+        .mob-card th,.mob-card td{
+          padding:10px 8px;
+          border-bottom:1px solid rgba(0,0,0,.08);
+          text-align:left;
+          font-size:14px;
+        }
+        .mob-card th{ color:rgba(0,0,0,.58); font-weight:900; }
+
+        .mob-kpi3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+        .mob-kpi2{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px; }
+        @media (max-width: 992px){
+          .mob-kpi3{ grid-template-columns:1fr; }
+          .mob-kpi2{ grid-template-columns:1fr; }
+        }
+
+        .mob-box{
+          border:1px solid rgba(0,0,0,.08);
+          border-radius:14px;
+          padding:12px;
+          background: rgba(255,255,255,.96);
+        }
+        .mob-box .lab{ font-size:12px; color:rgba(0,0,0,.55); font-weight:900; }
+        .mob-box .val{ font-size:22px; font-weight:1000; letter-spacing:-.3px; }
+        .mob-box .unit{ margin-left:6px; color:rgba(0,0,0,.55); font-weight:900; }
+
+        .mob-formrow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .mob-select{
+          padding:10px 12px;
+          border-radius:12px;
+          border:1px solid rgba(0,0,0,.15);
+          background:#fff;
+          min-width: 220px;
+          max-width:100%;
+          font-weight:800;
+        }
+
+        /* TOP3 */
+        .top3-card{
+          border:1px solid rgba(0,0,0,.08);
+          border-radius:16px;
+          padding:12px 14px;
+          background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.86));
+          box-shadow:0 10px 30px rgba(0,0,0,.08);
+          display:flex;
+          gap:12px;
+          align-items:center;
+        }
+        .rank-badge{
+          width:44px;height:44px;border-radius:14px;
+          display:flex;align-items:center;justify-content:center;
+          font-weight:1000;font-size:18px;
+          border:1px solid rgba(0,0,0,.08);
+          background:rgba(255,255,255,.92);
+          flex:0 0 auto;
+        }
+        .rank-1{background:rgba(255,215,0,.22); border-color:rgba(255,215,0,.35)}
+        .rank-2{background:rgba(192,192,192,.22); border-color:rgba(192,192,192,.40)}
+        .rank-3{background:rgba(205,127,50,.22); border-color:rgba(205,127,50,.35)}
+        .top3-main{flex:1;min-width:0}
+        .top3-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+        .top3-time{font-weight:1000;font-size:16px;letter-spacing:-.3px}
+        .top3-sub{margin-top:4px;color:rgba(0,0,0,.60);font-size:13px}
+        .status-badge{
+          padding:6px 10px;border-radius:999px;font-weight:1000;font-size:12px;
+          border:1px solid rgba(0,0,0,.08); white-space:nowrap;
+        }
+        .s-red{background:rgba(255,59,48,.14); color:#b31212; border-color:rgba(255,59,48,.28)}
+        .s-orange{background:rgba(255,149,0,.14); color:#9a4e00; border-color:rgba(255,149,0,.28)}
+        .s-green{background:rgba(52,199,89,.14); color:#0b6a2b; border-color:rgba(52,199,89,.28)}
+        .bar{
+          margin-top:10px;height:10px;border-radius:999px;
+          background:rgba(0,0,0,.06);
+          overflow:hidden;border:1px solid rgba(0,0,0,.06);
+        }
+        .bar > i{
+          display:block;height:100%;width:0%;
+          border-radius:999px;
+          background:linear-gradient(90deg, rgba(255,59,48,.95), rgba(255,149,0,.95));
+          transition:width .55s ease;
+        }
+    </style>
+</head>
+
+<body>
+<!-- 상단바 -->
+<div th:replace="~{layouts/top_public :: body}"></div>
+
+
+<main class="tw-page">
+
+    <div class="mob-title">
+        <h2>주차/오시는길+</h2>
+        <span class="mob-pill">Smart Mobility</span>
+    </div>
+    <p class="mob-desc">구청→영화관 이동정보 · 공영주차장 선택 · 도보거리/시간 · 지도 마커/라인 · 주소 표시</p>
+
+    <!-- 주소 hidden -->
+    <input type="hidden" id="cinemaAddressGeocode" th:value="${cinemaAddressGeocode}">
+    <input type="hidden" id="cinemaAddressDisplay" th:value="${cinemaAddressDisplay}">
+
+    <section class="mob-grid">
+
+        <!-- LEFT -->
+        <div class="d-grid gap-3">
+
+            <!-- 영화관 카드 -->
+            <div class="mob-card">
+                <div class="mob-card__hd">2WAY CINEMA</div>
+                <div class="mob-card__bd">
+                    <div id="cinemaAddrText" style="font-weight:900;">주소: -</div>
+
+                    <!--
+                    <div style="font-size:12px;color:rgba(0,0,0,.55);font-weight:800;margin-top:6px;">
+                        * 지도 위 주소는 자동 표시됩니다.
+                    </div>
+                    -->
+
+                    <div class="mt-3">
+                        <a id="btnOpenKakao" class="mob-btn mob-btn--dark text-decoration-none" target="_blank">
+                            카카오맵 열기
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- A -->
+            <div class="mob-card">
+                <div class="mob-card__hd">A. 인천 구청 기준 → 영화관 이동정보</div>
+                <div class="mob-card__bd">
+
+                    <div class="mob-formrow">
+                        <select id="districtSelect" class="mob-select">
+                            <option value="부평구">부평구</option>
+                            <option value="계양구">계양구</option>
+                            <option value="서구">서구</option>
+                            <option value="남동구">남동구</option>
+                            <option value="연수구">연수구</option>
+                            <option value="미추홀구">미추홀구</option>
+                            <option value="중구">중구</option>
+                            <option value="동구">동구</option>
+                            <option value="강화군">강화군</option>
+                            <option value="옹진군">옹진군</option>
+                        </select>
+
+                        <button class="mob-btn mob-btn--primary" type="button" onclick="calcFromDistrict()">길찾기</button>
+                    </div>
+
+                    <div class="mob-kpi3">
+                        <div class="mob-box">
+                            <div class="lab">거리</div>
+                            <div><span class="val" id="driveKm">-</span><span class="unit">km</span></div>
+                        </div>
+                        <div class="mob-box">
+                            <div class="lab">시간</div>
+                            <div><span class="val" id="driveMin">-</span><span class="unit">분</span></div>
+                        </div>
+                        <div class="mob-box">
+                            <div class="lab">택시요금(예상)</div>
+                            <div><span class="val" id="taxiFare">-</span><span class="unit">원</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- B -->
+            <div class="mob-card">
+                <div class="mob-card__hd">B. 영화관 기준 5km 이내 공영주차장</div>
+                <div class="mob-card__bd">
+
+                    <div class="mob-formrow">
+                        <select id="cinemaSelect" class="mob-select">
+                            <option value="C1">2WAY CINEMA</option>
+                        </select>
+
+                        <button class="mob-btn mob-btn--primary" type="button" onclick="loadParking()">주차장 불러오기</button>
+                    </div>
+
+                    <div class="table-responsive mt-3">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th style="width:70px">선택</th>
+                                <th>주차장</th>
+                                <th>주소(샘플)</th>
+                                <th style="width:90px">거리</th>
+                            </tr>
+                            </thead>
+                            <tbody id="parkingTbody">
+                            <tr><td colspan="4" style="color:rgba(0,0,0,.55);font-weight:800;">주차장 불러오기 버튼을 누르세요.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="font-size:12px;color:rgba(0,0,0,.55);font-weight:800;margin-top:8px;">
+                        * 원하는 영화관을 선택해주세요
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- C -->
+            <div class="mob-card">
+                <div class="mob-card__hd">C. 주차장 → 극장 도보거리/시간</div>
+                <div class="mob-card__bd">
+                    <div style="color:rgba(0,0,0,.55);font-weight:800;">주차장 선택 시 자동 계산됩니다.</div>
+
+                    <div class="mob-kpi2">
+                        <div class="mob-box">
+                            <div class="lab">도보거리</div>
+                            <div><span class="val" id="walkKm">-</span><span class="unit">km</span></div>
+                        </div>
+                        <div class="mob-box">
+                            <div class="lab">도보시간</div>
+                            <div><span class="val" id="walkMin">-</span><span class="unit">분</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- D -->
+            <div class="mob-card">
+                <div class="mob-card__hd d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <span>D. 혼잡시간대 TOP3</span>
+                    <button class="mob-btn mob-btn--dark" type="button" onclick="loadTop3()">Top3 불러오기</button>
+                </div>
+
+                <div class="mob-card__bd">
+                    <div id="top3Meta" style="color:rgba(0,0,0,.55);font-weight:800;margin-bottom:10px;">
+                        버튼을 누르면 표시됩니다.
+                    </div>
+                    <div id="top3Cards" style="display:grid; gap:12px"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="mob-card">
+            <div class="mob-card__hd">지도</div>
+            <div class="mob-card__bd">
+                <div id="map" class="mob-map-wrap"></div>
+
+                <!--
+                <div style="font-size:12px;color:rgba(0,0,0,.55);font-weight:800;margin-top:10px;">
+                    * 도보 라인은 실제 경로(pathPoints) 우선, 실패 시 직선 fallback.
+                </div>
+                -->
+
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<script>
+    // ✅ 카카오맵 SDK 로딩 완료 후 실행
+    kakao.maps.load(() => {
+
+      // =========================
+      // GLOBALS
+      // =========================
+      const CINEMA = {
+        name: "2WAY CINEMA",
+        addressGeocode: document.getElementById('cinemaAddressGeocode')?.value || "인천광역시 부평구 광장로 16",
+        addressDisplay: document.getElementById('cinemaAddressDisplay')?.value || "인천 부평구 광장로16 6층",
+        lat: 37.4896,
+        lng: 126.7233
+      };
+
+      const DISTRICT_CENTER = {
+        "계양구":   { lat: 37.5372, lng: 126.7377 },
+        "부평구":   { lat: 37.5071, lng: 126.7219 },
+        "서구":     { lat: 37.5455, lng: 126.6768 },
+        "남동구":   { lat: 37.4473, lng: 126.7313 },
+        "연수구":   { lat: 37.4103, lng: 126.6783 },
+        "미추홀구": { lat: 37.4636, lng: 126.6506 },
+        "중구":     { lat: 37.4737, lng: 126.6216 },
+        "동구":     { lat: 37.4739, lng: 126.6435 },
+        "강화군":   { lat: 37.7465, lng: 126.4881 },
+        "옹진군":   { lat: 37.4460, lng: 126.6366 }
+      };
+
+      const PARKING_PRESET = [
+        { id:"P1", name:"공영주차장", address:"(샘플) 부평역 큰길 주변",     lat:37.4870639, lng:126.7211084 },
+        { id:"P2", name:"공영주차장", address:"(샘플) 부평시장역 큰길 주변", lat:37.4982800, lng:126.7222100 },
+        { id:"P3", name:"공영주차장", address:"(샘플) 부평구청역 큰길 주변", lat:37.5084100, lng:126.7205400 }
+      ];
+
+      let map, cinemaMarker, parkingMarker, line;
+      const geocoder = new kakao.maps.services.Geocoder();
+      const infoWindow = new kakao.maps.InfoWindow({ removable:false });
+
+      initMap();
+      initCinemaUI();
+      placeCinemaMarker();
+
+      function initMap() {
+        const center = new kakao.maps.LatLng(CINEMA.lat, CINEMA.lng);
+        map = new kakao.maps.Map(document.getElementById('map'), { center, level: 5 });
+
+        line = new kakao.maps.Polyline({
+          path: [],
+          strokeWeight: 5,
+          strokeColor: '#ff3b30',
+          strokeOpacity: 0.9,
+          strokeStyle: 'solid'
+        });
+        line.setMap(map);
+      }
+
+      function initCinemaUI() {
+        const addrText = document.getElementById('cinemaAddrText');
+        const btnOpen = document.getElementById('btnOpenKakao');
+        if (addrText) addrText.innerText = `주소: ${CINEMA.addressDisplay}`;
+        if (btnOpen) btnOpen.href = "https://map.kakao.com/link/search/" + encodeURIComponent(CINEMA.addressGeocode);
+      }
+
+      function placeCinemaMarker() {
+        const pos = new kakao.maps.LatLng(CINEMA.lat, CINEMA.lng);
+        if (cinemaMarker) cinemaMarker.setMap(null);
+        cinemaMarker = new kakao.maps.Marker({ position: pos, map });
+        map.setCenter(pos);
+        showAddressByLatLng(CINEMA.lat, CINEMA.lng, CINEMA.name, cinemaMarker);
+      }
+
+      function showAddressByLatLng(lat, lng, title, markerForInfo) {
+        geocoder.coord2Address(lng, lat, (result, status) => {
+          if (status !== kakao.maps.services.Status.OK || !result || !result[0]) return;
+          const road = result[0].road_address ? result[0].road_address.address_name : "";
+          const jibun = result[0].address ? result[0].address.address_name : "";
+          const addr = road || jibun || "주소 정보 없음";
+
+          if (markerForInfo) {
+            infoWindow.setContent(`<div style="padding:10px 12px;min-width:220px;line-height:1.35;">
+              <div style="font-weight:900;margin-bottom:4px;">${escapeHtml(title || "위치")}</div>
+              <div style="color:rgba(0,0,0,.72)">${escapeHtml(addr)}</div>
+            </div>`);
+            infoWindow.open(map, markerForInfo);
+          }
+        });
+      }
+
+      function moveMarker(lat, lng, which, title){
+        const pos = new kakao.maps.LatLng(lat, lng);
+        map.setCenter(pos);
+
+        if(which === "parking"){
+          if (!parkingMarker) parkingMarker = new kakao.maps.Marker({ position: pos, map });
+          parkingMarker.setPosition(pos);
+          parkingMarker.setMap(map);
+          showAddressByLatLng(lat, lng, title, parkingMarker);
+        } else {
+          if (cinemaMarker) cinemaMarker.setPosition(pos);
+          showAddressByLatLng(lat, lng, title, cinemaMarker);
+        }
+      }
+
+      // =========================================================
+      // A. 구청 기준 → 영화관
+      // =========================================================
+      window.calcFromDistrict = async function () {
+        const district = document.getElementById('districtSelect')?.value || "부평구";
+        setDriveUI("-", "-", "-");
+
+        try {
+          const url = `/mobility/api/district/drive?district=${encodeURIComponent(district)}&cinemaLat=${CINEMA.lat}&cinemaLng=${CINEMA.lng}`;
+          const resp = await fetch(url);
+          if (resp.ok) {
+            const data = await resp.json();
+            const km = (data.distanceKm ?? data.driveDistanceKm ?? "-");
+            const min = (data.durationMin ?? data.driveDurationMin ?? "-");
+            const fare = (data.taxiFare ?? data.fare ?? "-");
+            setDriveUI(km, min, formatMoney(fare));
+            return;
+          }
+        } catch (e) {}
+
+        const start = DISTRICT_CENTER[district] || DISTRICT_CENTER["부평구"];
+        const km = haversineKm(start.lat, start.lng, CINEMA.lat, CINEMA.lng);
+        const min = Math.max(1, Math.round((km / 28) * 60));
+        const fare = Math.max(4800, Math.round(4800 + km * 1000));
+        setDriveUI(km.toFixed(2), min, formatMoney(fare));
+      };
+
+      function setDriveUI(km, min, fare) {
+        const elKm = document.getElementById('driveKm');
+        const elMin = document.getElementById('driveMin');
+        const elFare = document.getElementById('taxiFare');
+        if (elKm) elKm.innerText = (km ?? "-");
+        if (elMin) elMin.innerText = (min ?? "-");
+        if (elFare) elFare.innerText = (fare ?? "-");
+      }
+
+      // =========================================================
+      // B. 공영주차장
+      // =========================================================
+      window.loadParking = function () {
+        const tbody = document.getElementById('parkingTbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+        PARKING_PRESET.forEach((p, idx) => {
+          const km = haversineKm(p.lat, p.lng, CINEMA.lat, CINEMA.lng);
+
+          tbody.innerHTML += `
+            <tr>
+              <td>
+                <input type="radio" name="pk" ${idx === 0 ? "checked" : ""}
+                  onchange="selectParking(${p.lat}, ${p.lng}, '${escapeJs(p.name)}')">
+              </td>
+              <td><b>${escapeHtml(p.name)}</b></td>
+              <td>${escapeHtml(p.address)}</td>
+              <td>${km.toFixed(2)} km</td>
+            </tr>
+          `;
+        });
+
+        if (PARKING_PRESET[0]) {
+          selectParking(PARKING_PRESET[0].lat, PARKING_PRESET[0].lng, PARKING_PRESET[0].name);
+        }
+      };
+
+      window.selectParking = function (lat, lng, name) {
+        moveMarker(lat, lng, "parking", name || "선택 주차장");
+        calcWalkPath(lat, lng);
+      };
+
+      // =========================================================
+      // C. 도보
+      // =========================================================
+      async function calcWalkPath(parkingLat, parkingLng) {
+        setWalkUI("-", "-");
+
+        try {
+          const resp = await fetch('/mobility/api/walk/path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              parkingLat, parkingLng,
+              cinemaLat: CINEMA.lat, cinemaLng: CINEMA.lng
+            })
+          });
+
+          if (!resp.ok) throw new Error("walk/path http " + resp.status);
+
+          const data = await resp.json();
+
+          const kmVal = (data.walkDistanceKm ?? data.distanceKm);
+          const minVal = (data.walkDurationMin ?? data.durationMin);
+          if (kmVal != null && minVal != null) setWalkUI(kmVal, minVal);
+
+          const pts = data.pathPoints || [];
+          const path = Array.isArray(pts)
+            ? pts
+              .filter(p => Array.isArray(p) && p.length >= 2 && isFinite(p[0]) && isFinite(p[1]))
+              .map(p => new kakao.maps.LatLng(p[0], p[1]))
+            : [];
+
+          if (path.length >= 2) {
+            line.setPath(path);
+            const bounds = new kakao.maps.LatLngBounds();
+            path.forEach(ll => bounds.extend(ll));
+            map.setBounds(bounds);
+            return;
+          }
+
+          drawStraightLine(parkingLat, parkingLng);
+
+          if (kmVal == null || minVal == null) {
+            const km = haversineKm(parkingLat, parkingLng, CINEMA.lat, CINEMA.lng);
+            const min = Math.max(1, Math.round((km / 4.5) * 60));
+            setWalkUI(km.toFixed(2), min);
+          }
+
+        } catch (e) {
+          drawStraightLine(parkingLat, parkingLng);
+          const km = haversineKm(parkingLat, parkingLng, CINEMA.lat, CINEMA.lng);
+          const min = Math.max(1, Math.round((km / 4.5) * 60));
+          setWalkUI(km.toFixed(2), min);
+        }
+      }
+
+      function drawStraightLine(parkingLat, parkingLng) {
+        const p1 = new kakao.maps.LatLng(parkingLat, parkingLng);
+        const p2 = new kakao.maps.LatLng(CINEMA.lat, CINEMA.lng);
+        line.setPath([p1, p2]);
+
+        const bounds = new kakao.maps.LatLngBounds();
+        bounds.extend(p1);
+        bounds.extend(p2);
+        map.setBounds(bounds);
+      }
+
+      function setWalkUI(km, min) {
+        const walkKm = document.getElementById('walkKm');
+        const walkMin = document.getElementById('walkMin');
+        if (walkKm) walkKm.innerText = (km ?? "-");
+        if (walkMin) walkMin.innerText = (min ?? "-");
+      }
+
+      // =========================================================
+      // D. TOP3
+      // =========================================================
+      window.loadTop3 = async function () {
+        const cinemaId = document.getElementById('cinemaSelect')?.value || "C1";
+        const meta = document.getElementById('top3Meta');
+        const cards = document.getElementById('top3Cards');
+        if (!meta || !cards) return;
+
+        meta.innerHTML = "불러오는 중...";
+        cards.innerHTML = "";
+
+        try {
+          const resp = await fetch(`/mobility/api/congestion/top3?cinemaId=${encodeURIComponent(cinemaId)}`);
+          const data = await resp.json();
+          const arr = (data && data.top3) ? data.top3 : [];
+
+          if (!arr.length) {
+            meta.innerHTML = "데이터 없음";
+            return;
+          }
+
+          const now = new Date();
+          meta.innerHTML = `<b>오늘 기준</b> · 업데이트 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+          const items = arr.slice(0, 3).map((text, i) => parseTop3Text(text, i+1));
+          cards.innerHTML = items.map((it, idx) => top3CardHtml(it, idx)).join("");
+
+          setTimeout(() => {
+            document.querySelectorAll(".bar > i").forEach(el => {
+              const w = el.getAttribute("data-w") || "0";
+              el.style.width = w + "%";
+            });
+          }, 60);
+
+        } catch (e) {
+          meta.innerHTML = "Top3 API 실패";
+          cards.innerHTML = `<div style="color:rgba(0,0,0,.55);font-weight:800;">서버 응답을 확인하세요.</div>`;
+        }
+      };
+
+      function statusScore(status){
+        if (status.includes("매우")) return 92;
+        if (status.includes("혼잡")) return 70;
+        return 40;
+      }
+      function statusClass(status){
+        if (status.includes("매우")) return "s-red";
+        if (status.includes("혼잡")) return "s-orange";
+        return "s-green";
+      }
+
+      function parseTop3Text(raw, rank){
+        const text = String(raw || "").trim();
+
+        let status = "보통";
+        if (text.includes("매우혼잡")) status = "매우혼잡";
+        else if (text.includes("혼잡")) status = "혼잡";
+        else if (text.includes("보통")) status = "보통";
+
+        let time = text;
+        const m = text.match(/(\d{1,2}:\d{2}\s*~\s*\d{1,2}:\d{2})/);
+        if (m && m[1]) time = m[1];
+
+        let desc = text.replace(time, "").replace(status, "").trim();
+        if (!desc) desc = (rank === 1 ? "가급적 피하세요" : rank === 2 ? "조금 혼잡" : "상대적으로 여유");
+
+        return { rank, time, status, desc, raw:text };
+      }
+
+      function top3CardHtml(it, idx){
+        const score = statusScore(it.status);
+        const sClass = statusClass(it.status);
+        const rankClass = idx===0 ? "rank-1" : idx===1 ? "rank-2" : "rank-3";
+        const emoji = idx===0 ? "🔥" : idx===1 ? "⚠️" : "✅";
+
+        return `
+          <div class="top3-card">
+            <div class="rank-badge ${rankClass}">${it.rank}</div>
+            <div class="top3-main">
+              <div class="top3-title">
+                <div class="top3-time">${escapeHtml(it.time)} <span style="font-size:12px;color:rgba(0,0,0,.55)">${emoji}</span></div>
+                <span class="status-badge ${sClass}">${escapeHtml(it.status)}</span>
+              </div>
+              <div class="top3-sub">${escapeHtml(it.desc)}</div>
+              <div class="bar"><i data-w="${score}"></i></div>
+            </div>
+          </div>
+        `;
+      }
+
+      // =========================
+      // Utils
+      // =========================
+      function haversineKm(lat1, lng1, lat2, lng2) {
+        const R = 6371.0;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+          + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+          * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+      function toRad(v) { return v * Math.PI / 180; }
+
+      function formatMoney(v) {
+        if (v === null || v === undefined) return "-";
+        const n = Number(v);
+        if (Number.isFinite(n)) return n.toLocaleString();
+        return String(v);
+      }
+
+      function escapeHtml(s) {
+        if (s === null || s === undefined) return "";
+        return String(s)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function escapeJs(s){
+        if (s === null || s === undefined) return "";
+        return String(s)
+          .replaceAll("\\", "\\\\")
+          .replaceAll("'", "\\'")
+          .replaceAll('"', '\\"')
+          .replaceAll("\n", "\\n")
+          .replaceAll("\r", "\\r");
+      }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

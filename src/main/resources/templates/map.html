@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>2WAY CINEMA · Map</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<main class="container-xxl my-4">
+    <div class="tw-card">
+        <div class="tw-card__hd">
+            <h3 class="tw-title mb-1">오시는 길</h3>
+            <div class="tw-sub">여기에 너의 스마트모빌리티(주차장/경로/요금) 화면을 확장하면 됨</div>
+        </div>
+        <div class="tw-card__bd">
+            <div class="tw-card p-3" style="background: rgba(255,255,255,.60);">
+                <div class="tw-sub">지금은 임시 화면. Kakao Map 붙일 때 이 영역을 지도 div로 교체하면 끝.</div>
+                <div class="mt-3" style="height:420px; border-radius:18px; border:1px dashed rgba(10,20,40,.2); display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,.6);">
+                    <strong class="text-muted">MAP PLACEHOLDER</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

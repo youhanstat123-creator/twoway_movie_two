@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2WAY CINEMA · 영화 등록</title>
+
+    <!-- Bootstrap (헤더 드롭다운/네비 필수) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 공통 테마 -->
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+
+    <style>
+        /* ✅ 이 페이지에서만 쓰는 미세 UI */
+        .mv-wrap{max-width:1200px;margin:26px auto 64px;padding:0 16px;}
+        .mv-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:10px 0 14px}
+        .mv-hero h1{margin:0;font-size:34px;letter-spacing:-.6px;font-weight:950}
+        .mv-hero .sub{color:rgba(244,245,255,.72);font-weight:700;margin-top:6px}
+        .pill{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(255,43,214,.14);border:1px solid rgba(255,43,214,.22);font-weight:900;color:#fff}
+
+        .mv-card{
+          border-radius:24px;
+          border:1px solid rgba(255,255,255,.10);
+          background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+          box-shadow: 0 28px 90px rgba(0,0,0,.55);
+          backdrop-filter: blur(18px);
+          overflow:hidden;
+        }
+        .mv-grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px;padding:18px;}
+        @media (max-width: 992px){ .mv-grid{grid-template-columns:1fr;} }
+
+        .panel{
+          border-radius:20px;
+          background: rgba(255,255,255,.92);
+          border:1px solid rgba(0,0,0,.08);
+          padding:16px;
+          box-shadow: 0 12px 40px rgba(0,0,0,.10);
+          color:#0b0b12;
+        }
+        .panel h2{margin:0 0 10px;font-size:18px;font-weight:950;letter-spacing:-.3px}
+        .hint{font-size:12px;color:rgba(0,0,0,.55);font-weight:800;margin-bottom:12px}
+
+        .field{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+        .lab{font-size:12px;color:rgba(0,0,0,.62);font-weight:900}
+        .inp{
+          height:46px;border-radius:14px;border:1px solid rgba(0,0,0,.16);
+          padding:0 14px;background:#fff;outline:none;font-weight:800;
+        }
+        .inp:focus{border-color:rgba(255,43,214,.55); box-shadow:0 0 0 4px rgba(255,43,214,.14)}
+
+        .file{
+          padding:10px 12px;border-radius:14px;border:1px dashed rgba(0,0,0,.22);
+          background: rgba(255,255,255,.75);
+          font-weight:800;
+        }
+
+        .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+        .btnx{
+          border:none;border-radius:14px;padding:12px 14px;font-weight:1000;cursor:pointer;
+          display:inline-flex;align-items:center;justify-content:center;gap:10px;
+          text-decoration:none;
+        }
+        .primary{
+          color:#fff;
+          background: linear-gradient(135deg, rgba(255,43,214,.92), rgba(124,92,255,.80));
+          box-shadow: 0 18px 55px rgba(255,43,214,.22);
+        }
+        .ghost{
+          background: rgba(0,0,0,.04);
+          border:1px solid rgba(0,0,0,.10);
+          color:#111;
+        }
+
+        .preview{
+          border-radius:20px;
+          border:1px solid rgba(255,255,255,.12);
+          background: rgba(255,255,255,.06);
+          padding:14px;
+          height:100%;
+        }
+        .poster{
+          width:100%;
+          aspect-ratio: 2 / 3;
+          border-radius:18px;
+          border:1px solid rgba(255,255,255,.12);
+          background: rgba(0,0,0,.25);
+          overflow:hidden;
+          display:flex;align-items:center;justify-content:center;
+          box-shadow: 0 18px 55px rgba(0,0,0,.35);
+        }
+        .poster img{width:100%;height:100%;object-fit:cover;display:none}
+        .poster .ph{
+          color:rgba(244,245,255,.75);
+          font-weight:900;
+          text-align:center;
+          padding:18px;
+          line-height:1.5;
+        }
+        .meta{margin-top:12px;color:rgba(244,245,255,.78);font-weight:700}
+        .meta b{color:#fff}
+    </style>
+</head>
+
+<body>
+
+<!-- ✅ 상단바(프로젝트 공통) -->
+<!-- 여기서 fragments/header 쓰면 예전 헤더일 수 있어. 지금 쓰는 상단바가 layouts/top_public 이면 이걸로 통일 추천 -->
+<div th:replace="~{layouts/top_public :: body}"></div>
+<!-- 만약 프로젝트가 fragments/header 를 쓰는 구조면 위 줄 대신 아래 줄로 바꿔:
+<div th:replace="~{fragments/header :: header}"></div>
+-->
+
+<main class="mv-wrap">
+    <div class="mv-hero">
+        <div>
+            <h1>영화 등록 <span class="pill">ADMIN</span></h1>
+            <div class="sub">포스터 업로드 + 가격/제목 입력을 한 화면에서 깔끔하게 처리합니다.</div>
+        </div>
+    </div>
+
+    <section class="mv-card">
+        <div class="mv-grid">
+
+            <!-- LEFT: FORM -->
+            <div class="panel">
+                <h2>기본 정보</h2>
+                <div class="hint">* 저장 후 “목록”에서 포스터/정보가 바로 확인됩니다.</div>
+
+                <form th:action="@{/mv_inputsave}" method="post" enctype="multipart/form-data">
+                    <div class="field">
+                        <div class="lab">제목</div>
+                        <input class="inp" name="mtitle" placeholder="예) 인셉션" required>
+                    </div>
+
+                    <div class="field">
+                        <div class="lab">장르 (복수 선택)</div>
+
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="ACTION">
+                                액션
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="ROMANCE">
+                                로맨스
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="COMEDY">
+                                코미디
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="HORROR">
+                                공포
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="SF">
+                                SF
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="FANTASY">
+                                판타지
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="THRILLER">
+                                스릴러
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="ANIMATION">
+                                애니메이션
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="MUSICAL">
+                                뮤지컬
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="CRIME">
+                                범죄
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="mgenre" value="WAR">
+                               전쟁
+                            </label>
+                        </div>
+
+                        <div class="hint">클릭만으로 여러 개 선택 가능</div>
+                    </div>
+
+
+                    <div class="field">
+                        <div class="lab">등록일</div>
+                        <input class="inp" name="mdate" type="date" required>
+                    </div>
+
+                    <div class="field">
+                        <div class="lab">가격</div>
+                        <input class="inp" name="mprice" type="number" min="0" placeholder="예) 12000" required>
+                    </div>
+
+                    <div class="field">
+                        <div class="lab">포스터 이미지</div>
+                        <input id="posterFile" class="file" name="mimage1" type="file" accept="image/*" required>
+                    </div>
+
+                    <div class="field">
+                        <div class="lab">영화 내용</div>
+                        <textarea
+                                class="form-control" name="mcontent" rows="6" placeholder="영화 줄거리나 내용을 입력하세요" required></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btnx primary" type="submit">저장</button>
+                        <a class="btnx ghost" th:href="@{/mv_outgo}">목록</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RIGHT: PREVIEW -->
+            <div class="preview">
+                <div class="poster">
+                    <img id="posterImg" alt="poster preview">
+                    <div id="posterPh" class="ph">
+                        포스터 미리보기<br>
+                        이미지를 선택하면<br>
+                        바로 여기에서 확인됩니다.
+                    </div>
+                </div>
+
+                <div class="meta">
+                    ✅ 미리보기는 저장 전 확인용입니다.<br>
+                    ✅ 권장 비율: <b>2:3</b> (영화 포스터 표준)
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- ✅ Bootstrap JS (상단바 드롭다운/토글 동작 필수) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ 포스터 미리보기 -->
+<script>
+    (function(){
+      const file = document.getElementById('posterFile');
+      const img  = document.getElementById('posterImg');
+      const ph   = document.getElementById('posterPh');
+
+      if(!file) return;
+
+      file.addEventListener('change', () => {
+        const f = file.files && file.files[0];
+        if(!f){
+          img.style.display = 'none';
+          ph.style.display = 'block';
+          img.src = '';
+          return;
+        }
+        const url = URL.createObjectURL(f);
+        img.src = url;
+        img.style.display = 'block';
+        ph.style.display = 'none';
+      });
+    })();
+</script>
+</body>
+</html>

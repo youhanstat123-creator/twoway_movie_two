@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>주차요금정산 · Smart Mobility</title>
+    <!-- ✅ Bootstrap CSS (이게 없어서 네비가 목록처럼 보였던 것) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- (선택) 아이콘 쓰면 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- ✅ 공통 테마 -->
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+
+
+    <style>
+        .wrap{max-width:1200px;margin:24px auto;padding:0 16px;}
+        .hero{display:flex;align-items:flex-end;gap:12px;margin:18px 0 8px}
+        .hero h2{margin:0;font-size:34px;letter-spacing:-.6px}
+        .pill{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(0,120,255,.12);border:1px solid rgba(0,120,255,.18);font-weight:900}
+        .sub{color:rgba(244,245,255,.65);margin:8px 0 18px 0}
+
+        .card{background:rgba(255,255,255,.88);border:1px solid rgba(0,0,0,.08);border-radius:18px;
+          box-shadow:0 10px 35px rgba(0,0,0,.08);padding:18px;color:#0b0b12}
+
+        /* ✅ Bootstrap row 충돌 방지 */
+        .tw-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+        .tw-row.space{justify-content:space-between}
+
+        .btnx{border:none;border-radius:12px;padding:10px 12px;font-weight:1000;cursor:pointer}
+        .btn-primaryx{background:#1677ff;color:#fff}
+        .btn-outlinex{background:#fff;border:1px solid rgba(0,0,0,.16)}
+        .btn-ghostx{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.08)}
+
+        .field{display:flex;flex-direction:column;gap:6px}
+        .lab{font-size:12px;color:rgba(0,0,0,.6);font-weight:900}
+        .inp, .sel{
+          height:42px;border-radius:12px;border:1px solid rgba(0,0,0,.16);
+          padding:0 12px;background:#fff;outline:none;
+        }
+        .inp:focus, .sel:focus{border-color:rgba(22,119,255,.55);box-shadow:0 0 0 4px rgba(22,119,255,.12)}
+        .help{font-size:12px;color:rgba(0,0,0,.56)}
+
+        .formGrid{
+          display:grid;
+          grid-template-columns: repeat(12, 1fr);
+          gap:12px;
+          margin-top:12px;
+        }
+        .c4{grid-column: span 4;}
+        .c12{grid-column: span 12;}
+
+        .actions{display:flex;gap:10px;justify-content:flex-end;align-items:end}
+        .actions .btnx{height:42px}
+
+        .badge{
+          display:inline-flex;align-items:center;gap:6px;
+          padding:6px 10px;border-radius:999px;font-weight:1000;font-size:12px;
+          border:1px solid rgba(0,0,0,.10);
+          background:rgba(0,0,0,.03);
+        }
+        .b-ok{background:rgba(52,199,89,.14); color:#0b6a2b; border-color:rgba(52,199,89,.28)}
+        .b-no{background:rgba(255,59,48,.14); color:#b31212; border-color:rgba(255,59,48,.28)}
+        .b-warn{background:rgba(255,149,0,.14); color:#9a4e00; border-color:rgba(255,149,0,.28)}
+
+        .resultWrap{margin-top:14px;display:none}
+        .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+        .kpi .box{border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;background:rgba(255,255,255,.9)}
+        .kpi .box .t{font-size:12px;color:rgba(0,0,0,.55);font-weight:900}
+        .kpi .box b{font-size:22px}
+        .unit{margin-left:6px;color:rgba(0,0,0,.55);font-weight:900}
+
+        .receipt{margin-top:14px;border-top:1px dashed rgba(0,0,0,.18);padding-top:14px}
+        .rcRow{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+        .rcRow:last-child{border-bottom:none}
+        .rcKey{color:rgba(0,0,0,.55);font-weight:900}
+        .rcVal{font-weight:1000}
+
+        @media (max-width: 980px){
+          .c4{grid-column: span 12;}
+          .kpi{grid-template-columns:repeat(2,1fr)}
+          .actions{justify-content:flex-start}
+        }
+    </style>
+</head>
+
+<body>
+<div th:replace="~{layouts/top_public :: body}"></div>
+
+
+<div class="wrap">
+
+    <div class="hero">
+        <h2>주차요금정산</h2>
+        <span class="pill">Smart Mobility</span>
+    </div>
+    <p class="sub">관람인증코드 발급(서버) → 정산 시 검증 → 출차 승인 → 출차 완료</p>
+
+    <div class="card">
+        <div class="tw-row space">
+            <div class="tw-row" style="gap:8px">
+                <span class="badge">① 주차입력</span>
+                <span class="badge">② 주차출력</span>
+            </div>
+
+            <div class="tw-row">
+                <a class="btnx btn-outlinex" th:href="@{/mobility}">← 주차/오시는길+</a>
+            </div>
+        </div>
+
+        <div class="help" style="margin-top:10px">
+            요금 정책 : <b>30분당 500원</b> · 관람 인증 시 <b>3시간 무료</b> · 인증코드는 <b>30분 만료 / 1회용(승인 시 USED)</b>
+        </div>
+
+        <input type="hidden" id="sessionId"/>
+
+        <div class="formGrid">
+            <div class="field c4">
+                <div class="lab">차량번호(선택)</div>
+                <input id="carNo" class="inp" placeholder="예: 11가1111">
+            </div>
+
+            <div class="field c4">
+                <div class="lab">주차장 선택</div>
+                <select id="parkingSel" class="sel">
+                    <option th:each="p : ${parkingOptions}" th:value="${p}" th:text="${p}"></option>
+                </select>
+            </div>
+
+            <div class="field c4">
+                <div class="lab">관람인증코드</div>
+                <div class="tw-row" style="gap:8px;flex-wrap:nowrap">
+                    <input id="certCode" class="inp" style="flex:1" placeholder="발급받은 코드 입력">
+                    <button class="btnx btn-ghostx" type="button" onclick="issueCode()">발급</button>
+                    <button class="btnx btn-outlinex" type="button" onclick="verifyCode()">검증</button>
+                </div>
+                <div id="certMsg" class="help">미인증</div>
+            </div>
+
+            <div class="field c4">
+                <div class="lab">입차시간</div>
+                <input id="entryAt" class="inp" type="datetime-local">
+            </div>
+
+            <div class="field c4">
+                <div class="lab">출차예정</div>
+                <input id="exitAt" class="inp" type="datetime-local">
+            </div>
+
+            <div class="field c4">
+                <div class="lab">액션</div>
+                <div class="actions">
+                    <button class="btnx btn-outlinex" type="button" onclick="setNowExit()">지금 출차</button>
+                    <button class="btnx btn-primaryx" type="button" onclick="calculate()">정산하기</button>
+                </div>
+            </div>
+
+            <div class="field c12">
+                <div class="help">* “정산하기”는 <b>요금 계산</b>입니다. 실제 종료는 <b>출차 승인 → 출차 완료</b>로 처리됩니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultWrap" class="card resultWrap">
+        <div class="tw-row space">
+            <div class="tw-row" style="gap:10px">
+                <h3 style="margin:0">정산 결과</h3>
+                <span id="certBadge" class="badge b-no">미인증</span>
+                <span id="statusBadge" class="badge">CALCULATED</span>
+            </div>
+
+            <div class="tw-row">
+                <button class="btnx btn-outlinex" type="button" onclick="toggleResult()">접기</button>
+            </div>
+        </div>
+
+        <div class="kpi">
+            <div class="box"><div class="t">총 주차시간</div><b id="kTotal">-</b><span class="unit">분</span></div>
+            <div class="box"><div class="t">무료 적용</div><b id="kFree">-</b><span class="unit">분</span></div>
+            <div class="box"><div class="t">할인 전</div><b id="kBefore">-</b><span class="unit">원</span></div>
+            <div class="box"><div class="t">최종 결제</div><b id="kFinal">-</b><span class="unit">원</span></div>
+        </div>
+
+        <div class="tw-row" style="margin-top:14px;gap:10px">
+            <button id="btnApprove" class="btnx btn-primaryx" type="button" onclick="approveExit()" disabled>출차 승인</button>
+            <button id="btnExit" class="btnx btn-outlinex" type="button" onclick="exitComplete()" disabled>출차 완료</button>
+            <span id="flowMsg" class="help">정산 후 출차 승인 버튼이 활성화됩니다.</span>
+        </div>
+
+        <div class="receipt">
+            <div class="rcRow"><div class="rcKey">차량번호</div><div id="rCar" class="rcVal">-</div></div>
+            <div class="rcRow"><div class="rcKey">주차장</div><div id="rPk" class="rcVal">-</div></div>
+            <div class="rcRow"><div class="rcKey">입차 → 출차</div><div id="rTime" class="rcVal">-</div></div>
+            <div class="rcRow"><div class="rcKey">절약액</div><div id="rSave" class="rcVal">-</div></div>
+            <div class="rcRow"><div class="rcKey">인증코드</div><div id="rCode" class="rcVal">-</div></div>
+        </div>
+
+        <!--
+        <div class="help" style="margin-top:10px">
+            * 인증코드는 <b>출차 승인 시점</b>에 1회 사용 처리됩니다(USED).
+        </div>
+        -->
+
+    </div>
+
+</div>
+
+<!-- ✅ 너가 가진 fee 페이지 JS 그대로 붙여넣기 (그대로 동작) -->
+<script>
+    // =========================
+    // Fee Page JS (CLICK OK)
+    // - issueCode / verifyCode / calculate / approveExit / exitComplete
+    // - 서버 API가 다르면 URL만 수정
+    // =========================
+
+    const $ = (id) => document.getElementById(id);
+
+    // ✅ 너 컨트롤러에 맞게 필요하면 여기만 수정
+    const API = {
+      ISSUE:   "/mobility/api/fee/cert/issue",     // 인증코드 발급
+      VERIFY:  "/mobility/api/fee/cert/verify",    // 인증코드 검증
+      CALC:    "/mobility/api/fee/calc",           // 정산 계산
+      APPROVE: "/mobility/api/fee/exit/approve",   // 출차 승인
+      EXIT:    "/mobility/api/fee/exit/complete"   // 출차 완료
+    };
+
+    // ===== init =====
+    document.addEventListener("DOMContentLoaded", () => {
+      // 기본 시간 세팅(없으면)
+      if ($("entryAt") && !$("entryAt").value) $("entryAt").value = toLocalInputValue(new Date());
+      if ($("exitAt") && !$("exitAt").value)  $("exitAt").value  = toLocalInputValue(addMinutes(new Date(), 60));
+
+      // 결과영역 초기 숨김
+      hideResult();
+
+      // 클릭 로그(진단용) — 필요없으면 지워도 됨
+      // document.addEventListener("click", (e) => console.log("CLICK:", e.target), true);
+    });
+
+    // =========================
+    // UI helpers
+    // =========================
+    function setCert(status, msg){
+      const m = $("certMsg");
+      const b = $("certBadge");
+      if (m) m.textContent = msg || "";
+      if (!b) return;
+
+      b.classList.remove("b-ok", "b-no", "b-warn");
+      if (status === "OK") {
+        b.classList.add("b-ok");
+        b.textContent = "인증됨";
+      } else if (status === "WARN") {
+        b.classList.add("b-warn");
+        b.textContent = "주의";
+      } else {
+        b.classList.add("b-no");
+        b.textContent = "미인증";
+      }
+    }
+
+    function showResult(){
+      const w = $("resultWrap");
+      if (w) w.style.display = "block";
+    }
+
+    function hideResult(){
+      const w = $("resultWrap");
+      if (w) w.style.display = "none";
+    }
+
+    function toggleResult(){
+      const w = $("resultWrap");
+      if (!w) return;
+      w.style.display = (w.style.display === "none" || !w.style.display) ? "block" : "none";
+    }
+    window.toggleResult = toggleResult;
+
+    function enableFlow(approveEnabled, exitEnabled, msg){
+      const a = $("btnApprove");
+      const e = $("btnExit");
+      const m = $("flowMsg");
+      if (a) a.disabled = !approveEnabled;
+      if (e) e.disabled = !exitEnabled;
+      if (m) m.textContent = msg || "";
+    }
+
+    function setNowExit(){
+      if ($("exitAt")) $("exitAt").value = toLocalInputValue(new Date());
+    }
+    window.setNowExit = setNowExit;
+
+    // =========================
+    // 1) 인증코드 발급
+    // =========================
+    async function issueCode(){
+      try{
+        // 서버에 “발급 요청” (차량번호/주차장 등을 같이 보내도 됨)
+        const payload = {
+          carNo: ($("carNo")?.value || "").trim(),
+          parking: $("parkingSel")?.value || ""
+        };
+
+        // ✅ 서버가 없으면 일단 프론트에서 임시코드 생성
+        // 서버 붙이면 fetch만 쓰면 됨.
+        const resp = await safeFetch(API.ISSUE, payload);
+
+        const code = resp?.code || makeCode(6);
+        if ($("certCode")) $("certCode").value = code;
+
+        setCert("WARN", "발급됨 (검증 필요)");
+        // 정산 버튼 누르면 흐름 시작
+      }catch(e){
+        console.error(e);
+        // 서버가 아직 없거나 URL 다르면 여기로 떨어짐
+        const code = makeCode(6);
+        if ($("certCode")) $("certCode").value = code;
+        setCert("WARN", "발급됨 · 검증 버튼을 눌러주세요");
+      }
+    }
+    window.issueCode = issueCode;
+
+    // =========================
+    // 2) 인증코드 검증
+    // =========================
+    async function verifyCode(){
+      const code = ($("certCode")?.value || "").trim();
+      if (!code) {
+        setCert("NO", "코드를 먼저 입력/발급하세요");
+        return;
+      }
+
+      try{
+        const payload = { code };
+        const resp = await safeFetch(API.VERIFY, payload);
+
+        const ok = (resp?.valid === true) || (resp?.result === "OK") || (resp?.status === "OK");
+        if (ok){
+          setCert("OK", "인증 성공(3시간 무료 적용)");
+        } else {
+          setCert("NO", "인증 실패(만료/잘못된 코드)");
+        }
+      }catch(e){
+        console.error(e);
+        // 서버 없을 때: 데모로 길이 6이면 OK 처리
+        if (code.length >= 6) setCert("OK", "인증 성공");
+        else setCert("NO", "인증 실패");
+      }
+    }
+    window.verifyCode = verifyCode;
+
+    // =========================
+    // 3) 정산하기 (요금 계산)
+    // =========================
+    async function calculate(){
+      const entry = $("entryAt")?.value;
+      const exit  = $("exitAt")?.value;
+      if (!entry || !exit){
+        alert("입차시간/출차예정을 입력하세요.");
+        return;
+      }
+
+      const payload = {
+        carNo: ($("carNo")?.value || "").trim(),
+        parking: $("parkingSel")?.value || "",
+        entryAt: entry,
+        exitAt: exit,
+        certCode: ($("certCode")?.value || "").trim()
+      };
+
+      showResult();
+
+      try{
+        const resp = await safeFetch(API.CALC, payload);
+
+        // 서버 응답 포맷이 달라도 최대한 흡수
+        const totalMin  = resp?.totalMin ?? resp?.totalMinutes ?? resp?.total ?? calcMinutes(entry, exit);
+        const freeMin   = resp?.freeMin  ?? resp?.freeMinutes  ?? 0;
+        const beforeFee = resp?.beforeFee ?? resp?.feeBefore ?? calcFee(totalMin, 500);
+        const finalFee  = resp?.finalFee  ?? resp?.feeFinal  ?? Math.max(0, beforeFee - calcFee(freeMin, 500));
+
+        renderResult({
+          totalMin, freeMin, beforeFee, finalFee,
+          certified: (resp?.certified === true) || ($("certBadge")?.textContent === "인증됨")
+        });
+
+        // ✅ 정산 완료 후 출차승인 활성화
+        enableFlow(true, false, "정산 완료 · 출차 승인 버튼을 누르세요.");
+        setStatus("CALCULATED");
+
+      }catch(e){
+        console.error(e);
+        // 서버 없이도 UI는 동작하도록 로컬 계산 fallback
+        const totalMin = calcMinutes(entry, exit);
+        const certified = ($("certBadge")?.textContent === "인증됨");
+        const freeMin = certified ? Math.min(180, totalMin) : 0; // 3시간 무료
+        const beforeFee = calcFee(totalMin, 500);
+        const finalFee = Math.max(0, beforeFee - calcFee(freeMin, 500));
+
+        renderResult({ totalMin, freeMin, beforeFee, finalFee, certified });
+        enableFlow(true, false, "정산 완료 · 출차 승인 버튼을 누르세요.");
+        setStatus("CALCULATED");
+      }
+    }
+    window.calculate = calculate;
+
+    // =========================
+    // 4) 출차 승인 / 출차 완료
+    // =========================
+    async function approveExit(){
+      try{
+        const payload = { sessionId: $("sessionId")?.value || null };
+        await safeFetch(API.APPROVE, payload);
+        enableFlow(false, true, "출차 승인 완료 · 출차 완료를 누르세요.");
+        setStatus("APPROVED");
+      }catch(e){
+        console.error(e);
+        enableFlow(false, true, "출차 승인 · 출차 완료를 누르세요.");
+        setStatus("APPROVED");
+      }
+    }
+    window.approveExit = approveExit;
+
+    async function exitComplete(){
+      try{
+        const payload = { sessionId: $("sessionId")?.value || null };
+        await safeFetch(API.EXIT, payload);
+        enableFlow(false, false, "출차 완료");
+        setStatus("EXITED");
+      }catch(e){
+        console.error(e);
+        enableFlow(false, false, "출차 완료");
+        setStatus("EXITED");
+      }
+    }
+    window.exitComplete = exitComplete;
+
+    function setStatus(text){
+      const s = $("statusBadge");
+      if (s) s.textContent = text || "-";
+    }
+
+    function renderResult({totalMin, freeMin, beforeFee, finalFee, certified}){
+      if ($("kTotal"))  $("kTotal").textContent  = num(totalMin);
+      if ($("kFree"))   $("kFree").textContent   = num(freeMin);
+      if ($("kBefore")) $("kBefore").textContent = money(beforeFee);
+      if ($("kFinal"))  $("kFinal").textContent  = money(finalFee);
+
+      // 영수증
+      if ($("rCar"))  $("rCar").textContent  = ($("carNo")?.value || "-");
+      if ($("rPk"))   $("rPk").textContent   = ($("parkingSel")?.value || "-");
+      if ($("rTime")) $("rTime").textContent = `${$("entryAt")?.value || "-"} → ${$("exitAt")?.value || "-"}`;
+      if ($("rSave")) $("rSave").textContent = money(Math.max(0, beforeFee - finalFee));
+      if ($("rCode")) $("rCode").textContent = ($("certCode")?.value || "-");
+
+      setCert(certified ? "OK" : "NO", certified ? "인증 적용됨" : "미인증(무료 없음)");
+    }
+
+    // =========================
+    // Fetch helper
+    // =========================
+    async function safeFetch(url, body){
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body || {})
+      });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const ct = resp.headers.get("content-type") || "";
+      if (ct.includes("application/json")) return await resp.json();
+      return { text: await resp.text() };
+    }
+
+    // =========================
+    // local calc helpers
+    // =========================
+    function calcMinutes(entryLocal, exitLocal){
+      const a = new Date(entryLocal);
+      const b = new Date(exitLocal);
+      const diff = Math.max(0, b.getTime() - a.getTime());
+      return Math.round(diff / 60000);
+    }
+
+    // 데모: 30분당 500원 => 분단위로 올림 처리
+    function calcFee(totalMin, per30Fee){
+      const blocks = Math.ceil(totalMin / 30);
+      return blocks * per30Fee;
+    }
+
+    function toLocalInputValue(date){
+      const pad = (n)=> String(n).padStart(2,"0");
+      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+    function addMinutes(d, m){ return new Date(d.getTime() + m*60000); }
+
+    function makeCode(len){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let out = "";
+      for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+      return out;
+    }
+
+    function money(v){
+      const n = Number(v);
+      if (!Number.isFinite(n)) return String(v ?? "-");
+      return n.toLocaleString();
+    }
+    function num(v){
+      const n = Number(v);
+      if (!Number.isFinite(n)) return String(v ?? "-");
+      return n.toLocaleString();
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
