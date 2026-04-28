@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,8 +21,11 @@
         .hd{padding:16px;border-bottom:1px solid rgba(255,255,255,.10);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
         .title{margin:0;color:#fff;font-weight:950;letter-spacing:-.4px}
         .sub{color:rgba(244,245,255,.75);font-weight:800;font-size:13px;margin-top:6px}
-        .btnx{border:none;border-radius:14px;padding:10px 12px;font-weight:1000;cursor:pointer;
-            display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap;}
+        .btnx{
+            border:none;border-radius:14px;padding:10px 12px;font-weight:1000;cursor:pointer;
+            display:inline-flex;align-items:center;justify-content:center;gap:8px;
+            text-decoration:none;white-space:nowrap;
+        }
         .primary{color:#fff;background:linear-gradient(135deg, rgba(255,43,214,.92), rgba(124,92,255,.80));box-shadow:0 18px 55px rgba(255,43,214,.20)}
         .ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff}
 
@@ -29,7 +33,6 @@
         .box{border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);padding:14px;color:#fff}
         .lab{color:rgba(244,245,255,.78);font-weight:950;margin-bottom:8px}
         .memo{white-space:pre-wrap;font-weight:800;line-height:1.55;color:#fff}
-        .muted{color:rgba(244,245,255,.70);font-weight:700;font-size:12px}
     </style>
 </head>
 
@@ -38,6 +41,7 @@
 
 <main class="bd-wrap">
     <section class="glass">
+
         <div class="hd">
             <div>
                 <h2 class="title">문의 #<span th:text="${dto.bbunho}">1</span></h2>
@@ -48,15 +52,39 @@
                 </div>
             </div>
 
+            <!-- 버튼 영역 -->
             <div style="display:flex;gap:10px;flex-wrap:wrap">
+
+                <!-- 모두 가능 -->
                 <a class="btnx ghost" th:href="@{/board_all}">목록</a>
-                <a class="btnx ghost" th:href="@{/board_updatego(bbunho=${dto.bbunho})}">수정</a>
-                <a class="btnx primary" th:href="@{/board_delete(bbunho=${dto.bbunho})}">삭제</a>
-                <a class="btnx primary" th:href="@{/board_replygo(bbunho=${dto.bbunho})}">답변</a>
+
+                <!-- 작성자만 수정 가능 -->
+                <a class="btnx ghost"
+                   sec:authorize="isAuthenticated()"
+                   th:if="${#authentication.name == dto.bname}"
+                   th:href="@{/board_updatego(bbunho=${dto.bbunho})}">
+                    수정
+                </a>
+
+                <!-- 관리자만 삭제 -->
+                <a class="btnx primary"
+                   sec:authorize="hasRole('ADMIN')"
+                   th:href="@{/board_delete(bbunho=${dto.bbunho})}">
+                    삭제
+                </a>
+
+                <!-- 관리자만 답변 -->
+                <a class="btnx primary"
+                   sec:authorize="hasRole('ADMIN')"
+                   th:href="@{/board_replygo(bbunho=${dto.bbunho})}">
+                    답변
+                </a>
+
             </div>
         </div>
 
         <div class="bd">
+
             <div class="box">
                 <div class="lab">문의 내용</div>
                 <div class="memo" th:text="${dto.bmemo}">문의 내용</div>
@@ -71,7 +99,9 @@
                     답변
                 </div>
             </div>
+
         </div>
+
     </section>
 </main>
 

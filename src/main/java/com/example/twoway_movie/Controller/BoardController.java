@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -92,15 +93,17 @@ public class BoardController {
     /* =========================
        답변
        ========================= */
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/board_replygo")
     public String replyGo(@RequestParam Long bbunho, Model model) {
         BoardDTO dto = boardService.selectOne(bbunho);
         if (dto == null) return "redirect:/board_all";
 
         model.addAttribute("dto", dto);
-        return "board/board_reply"; // ✅ templates/board/board_reply.html
+        return "board/board_reply";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/board_reply")
     public String reply(@RequestParam Long bbunho,
                         @RequestParam String breply) {

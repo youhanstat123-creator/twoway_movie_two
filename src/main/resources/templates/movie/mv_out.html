@@ -73,7 +73,11 @@
             <div class="sub">페이지: <b th:text="${nowpage}">1</b> / <span th:text="${totalPage}">1</span></div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a class="btnx primary" th:href="@{/mv_inputgo}">➕ 등록(ADMIN)</a>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <a class="btn-neo" th:href="@{/mv_inputgo}">
+                    + 등록(ADMIN)
+                </a>
+            </th:block>
             <a class="btnx ghost" th:href="@{/mv_searchgo}">🔎 검색</a>
         </div>
     </div>

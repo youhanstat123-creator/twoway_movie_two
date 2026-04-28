@@ -166,7 +166,14 @@
 
                 <div class="hero-actions">
                     <a class="btn-neo" th:href="@{/mv_outgo}">🎟 영화 목록</a>
-                    <a class="btn-neo-outline" th:href="@{/mv_inputgo}">➕ 영화 등록(ADMIN)</a>
+
+                    <!-- 👉 이걸 조건으로 감싸 -->
+                    <th:block th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                        <a class="btn-neo-outline" th:href="@{/mv_inputgo}">
+                            ➕ 영화 등록(ADMIN)
+                        </a>
+                    </th:block>
+
                     <a class="btn-neo-outline" th:href="@{/board_all}">💬 문의 게시판</a>
                     <a class="btn-neo-outline" th:href="@{/mobility}">🗺 오시는 길</a>
                     <a class="btn-neo-outline" th:href="@{/mobility/fee}">💳 주차요금정산</a>

@@ -168,6 +168,7 @@ public class MovieController {
         entity.setMprice(mdto.getMprice());
         entity.setMdate(mdto.getMdate());
         entity.setMimage(finalName);
+        entity.setMcontent(mdto.getMcontent());
 
         movieServie.updateae(entity);
         return "redirect:/mv_outgo";
